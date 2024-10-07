@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grain Ai</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Include Typed.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+    <style>
+        body {
+            background-image: url('/static/back2.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            min-height: 100vh;
+            /* Ensures the background covers the full height of the screen */
+            margin: 0;
+            /* Removes any default margin */
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            /* background: transparent; */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 90vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            width: 60%;
+            max-width: 1200px;
+        }
+
+        .webcam-container,
+        .description-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 45%;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        #webcam_feed,
+        .description-box {
+            border: 5px solid #444;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 640px;
+            height: auto;
+            padding: 10px;
+            background-color: #000000;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        #captureBtn,
+        #describeBtn {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #captureBtn:hover,
+        #describeBtn:hover {
+            background-color: #0056b3;
+        }
+
+        p {
+            font-size: 14px;
+            color: #555;
+        }
+
+        #statusMessage,
+        #describe {
+            font-weight: bold;
+            /* color: #000000; */
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .description-container p {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* Media Queries for responsiveness */
+        @media screen and (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .webcam-container,
+            .description-container {
+                width: 90%;
+                margin-bottom: 20px;
+            }
+
+            h1 {
+                font-size: 1rem;
+            }
+
+            #captureBtn,
+            #describeBtn {
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+
+            p {
+                font-size: 12px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 0.9rem;
+            }
+
+            #captureBtn,
+            #describeBtn {
+                font-size: 10px;
+                padding: 5px 8px;
+            }
+
+            p {
+                font-size: 10px;
+            }
+
+            #webcam_feed,
+            .description-box {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Left Side (Webcam Container) -->
+        <div class="webcam-container">
+            <h1>Grain Ai</h1>
+            <img id="webcam_feed" src="{{ url_for('video_feed') }}" alt="Webcam Feed">
+
+            <div class="button-container">
+                <button id="captureBtn">Capture Grain</button>
+                <button id="describeBtn">Scan Grain</button>
+            </div>
+
+            <p id="statusMessage"></p>
+        </div>
+
+        <!-- Right Side (Description Container) -->
+        <div class="description-container">
+            <h1>Image Description</h1>
+            <div class="description-box">
+                <p id="describe">Description will appear here after scanning.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Capture image button click
+            $('#captureBtn').click(function () {
+                $.ajax({
+                    url: "{{ url_for('capture') }}",
+                    type: 'POST',
+                    success: function (response) {
+                        if (response.status === 'success') {
+                            $('#statusMessage').text(response.message);
+                        } else {
+                            $('#statusMessage').text('Failed to capture image');
+                        }
+                    },
+                    error: function () {
+                        $('#statusMessage').text('Error capturing image');
+                    }
+                });
+            });
+
+            // Describe image button click with Typed.js effect
+            $('#describeBtn').click(function () {
+                $.ajax({
+                    url: "{{ url_for('describe') }}",
+                    type: 'POST',
+                    success: function (response) {
+                        // Remove any existing Typed instance
+                        $('#describe').text('');  // Clear the text content first
+
+                        // Initialize Typed.js with the response
+                        var typed = new Typed('#describe', {
+                            strings: [response.message], // The response from the server
+                            typeSpeed: 20,
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
